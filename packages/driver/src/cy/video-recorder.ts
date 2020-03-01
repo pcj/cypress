@@ -24,6 +24,10 @@ export function create (Cypress) {
         mimeType: 'video/webm',
       }
 
+      // note: A MediaRecorder is instantiated regardless of the
+      // --videoRecordOnPasses flag. If that flag is false, we'll just discard
+      // the video at the end to save compression and file storage cost.
+
       // @ts-ignore
       const mediaRecorder = new window.MediaRecorder(stream, options)
 

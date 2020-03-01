@@ -830,16 +830,17 @@ module.exports = {
     console.log('')
   },
 
-  postProcessRecording (end, name, cname, videoCompression, shouldUploadVideo) {
-    debug('ending the video recording %o', { name, videoCompression, shouldUploadVideo })
+  postProcessRecording (end, name, cname, videoCompression, shouldUploadVideo, shouldRecordVideo) {
+    debug('ending the video recording %o', { name, videoCompression, shouldUploadVideo, shouldRecordVideo })
 
     // once this ended promises resolves
     // then begin processing the file
     return end()
     .then(() => {
-      // dont process anything if videoCompress is off
-      // or we've been told not to upload the video
-      if (videoCompression === false || shouldUploadVideo === false) {
+      // dont process anything if videoCompress is off or we've been told not to
+      // upload the video, or if we've been told not to save the video when the
+      // test passed.
+      if (videoCompression === false || shouldUploadVideo === false || shouldRecordVideo === false) {
         return
       }
 
@@ -1077,7 +1078,7 @@ module.exports = {
   },
 
   waitForTestsToFinishRunning (options = {}) {
-    const { project, screenshots, startedVideoCapture, endVideoCapture, videoName, compressedVideoName, videoCompression, videoUploadOnPasses, exit, spec, estimated } = options
+    const { project, screenshots, startedVideoCapture, endVideoCapture, videoName, compressedVideoName, videoCompression, videoUploadOnPasses, videoRecordOnPasses, exit, spec, estimated } = options
 
     // https://github.com/cypress-io/cypress/issues/2370
     // delay 1 second if we're recording a video to give
@@ -1121,6 +1122,10 @@ module.exports = {
 
       const hasFailingTests = _.get(stats, 'failures') > 0
 
+      const isFailingTest = _.get(stats, 'failures').filter((test) => {
+        console.log(`failing test?`, test)
+      })
+
       // if we have a video recording
       if (startedVideoCapture && tests && tests.length) {
         // always set the video timestamp on tests
@@ -1131,7 +1136,12 @@ module.exports = {
       // or if we have any failures and have started the video
       const suv = Boolean(videoUploadOnPasses === true || (startedVideoCapture && hasFailingTests))
 
+      // we should record the video if it failed or if the we've been told to
+      // record all tests
+      const srv = Boolean(videoRecordOnPasses === true || isFailingTest)
+
       obj.shouldUploadVideo = suv
+      obj.shouldRecordVideo = srv
 
       debug('attempting to close the browser')
 
@@ -1148,6 +1158,7 @@ module.exports = {
             compressedVideoName,
             videoCompression,
             suv,
+            srv,
           ).then(finish)
           // TODO: add a catch here
         }

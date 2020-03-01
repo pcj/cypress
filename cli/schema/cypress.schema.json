@@ -147,6 +147,11 @@
       "default": true,
       "description": "Whether Cypress will capture a video of the tests run with cypress run"
     },
+    "videoRecordOnPasses": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether Cypress will capture a video to the tests run with cypress run.  Turn this off if you'd like to skip recording/compression of passing tests."
+    },
     "videoUploadOnPasses": {
       "type": "boolean",
       "default": true,
